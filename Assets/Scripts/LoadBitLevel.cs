@@ -1,5 +1,6 @@
 using System.Collections;
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Collections.Generic;
@@ -14,14 +15,24 @@ public class LoadBitLevel : MonoBehaviour
     public static List<SingleLevelInput> levels = new List<SingleLevelInput>();
 
     public static int currentLevel = 0;
+    public bool playNewest;
+    public bool skipAhead;
+    public int levelToSkipTo;
 
-    public static UnityEvent levelCompleteEvent;
+    public static UnityEvent resetForNewLevel;
 
     // Start is called before the first frame update
     void Start()
     {
-        currentLevel = 0;
+        resetForNewLevel = new UnityEvent();
         parse();
+        currentLevel = 0;
+        if (playNewest)
+            currentLevel = levels.Count - 1;
+        else if(skipAhead)
+            currentLevel = levelToSkipTo;
+
+
     }
 
     void advanceLevel()
@@ -39,18 +50,39 @@ public class LoadBitLevel : MonoBehaviour
 
     void parse()
     {
-        var contents = File.ReadAllText(bitLevelPath).Split('\n');
-        for (int i = 0; i < contents.Length - 3; i += 4)
+        var contents = File.ReadAllText(bitLevelPath).Trim().Split(new string[]{"\n\n"}, StringSplitOptions.None);
+        foreach (var level in contents)
         {
-            var cur = new SingleLevelInput(getLevelLine(contents[i]), getLevelLine(contents[i + 1]),
-            getLevelLine(contents[i + 2]));
+            // print("level is " + level);
+            var cur = new SingleLevelInput(level.Split('\n').Select(x => getLevelLine(x)).ToArray());
             levels.Add(cur);
+
         }
+        
+        // for (int i = 0; i < contents.Length - numLinesInLevel; i += numLinesInLevel + 1)
+        // {
+        //     var cur = new SingleLevelInput(
+        //         getLevelLine(contents[i]),
+        //         getLevelLine(contents[i + 1]),
+        //         getLevelLine(contents[i + 2])
+        //     );
+        //     levels.Add(cur);
+        // }
     }
 
     public static string getBitsForBitGroup(BitGroupScript.bitGroupType pos)
     {
         return levels[currentLevel][(int)pos];
+    }
+
+    public static int getLongestStringLengthOnLevel()
+    {
+        return levels[currentLevel].getMaxBitStringLengthOnLevel();
+    }
+
+    public static SingleLevelInput getCurrentLevelData()
+    {
+        return levels[currentLevel];
     }
 
     // Update is called once per frame

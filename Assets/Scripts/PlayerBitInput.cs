@@ -14,6 +14,9 @@ public class PlayerBitInput : MonoBehaviour
     public BitGroupScript goalBitGroup;
     Dictionary<KeyCode, Action> keyToOperation = new Dictionary<KeyCode, Action>();
     bool isCorrect = false;
+
+    Coroutine levelCompleteCoroutine = null;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +24,11 @@ public class PlayerBitInput : MonoBehaviour
         keyToOperation.Add(KeyCode.E, andBits);
         keyToOperation.Add(KeyCode.R, orBits);
         keyToOperation.Add(KeyCode.F, xorBits);
+        keyToOperation.Add(KeyCode.C, reset);
+        keyToOperation.Add(KeyCode.A, shiftBitsLeft);
+        keyToOperation.Add(KeyCode.LeftArrow, shiftBitsLeft);
+        keyToOperation.Add(KeyCode.D, shiftBitsRight);
+        keyToOperation.Add(KeyCode.RightArrow, shiftBitsRight);
         // keyToOperation.Add(KeyCode.A, shiftBitsLeft);
         // keyToOperation.Add(KeyCode.LeftArrow, shiftBitsLeft);
         // keyToOperation.Add(KeyCode.D, shiftBitsRight);
@@ -30,8 +38,14 @@ public class PlayerBitInput : MonoBehaviour
 
     IEnumerator winAnimation()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(.1f);
         isCorrect = false;
+        LoadBitLevel.currentLevel += 1;
+        print("increased level");
+        levelCompleteCoroutine = null;
+
+        LoadBitLevel.resetForNewLevel.Invoke();
+
 
     }
 
@@ -39,11 +53,12 @@ public class PlayerBitInput : MonoBehaviour
     {
         if (isCorrect)
             return;
-        if (playerBitGroupScript.bitGroupValue == goalBitGroup.bitGroupValue)
+        if (playerBitGroupScript.bitGroupIntValue == goalBitGroup.bitGroupIntValue && levelCompleteCoroutine == null)
         {
+            Globals.audioManager.playSoundByName("levelComplete");
             print("was correct");
             isCorrect = true;
-            StartCoroutine(winAnimation());
+            levelCompleteCoroutine = StartCoroutine(winAnimation());
         }
     }
 
@@ -51,16 +66,16 @@ public class PlayerBitInput : MonoBehaviour
     {
         if (isCorrect)
             return;
-        if (Input.GetAxisRaw("Horizontal") < 0 && oldRawInputHorizontal >= 0)
-        {
-            shiftBitsLeft();
-            print("new bit group value" + playerBitGroupScript.bitGroupValue);
-        }
-        if (Input.GetAxisRaw("Horizontal") > 0 && oldRawInputHorizontal <= 0)
-        {
-            shiftBitsRight();
-            print("new bit group value" + playerBitGroupScript.bitGroupValue);
-        }
+        // if (Input.GetAxisRaw("Horizontal") < 0 && oldRawInputHorizontal >= 0)
+        // {
+        //     shiftBitsLeft();
+        //     // print("new bit group value" + playerBitGroupScript.bitGroupIntValue);
+        // }
+        // if (Input.GetAxisRaw("Horizontal") > 0 && oldRawInputHorizontal <= 0)
+        // {
+        //     shiftBitsRight();
+        //     // print("new bit group value" + playerBitGroupScript.bitGroupIntValue);
+        // }
 
         foreach (var keycode in keyToOperation.Keys)
         {
@@ -71,30 +86,55 @@ public class PlayerBitInput : MonoBehaviour
         oldRawInputHorizontal = Input.GetAxisRaw("Horizontal");
     }
 
+    public void reset()
+    {
+        LoadBitLevel.resetForNewLevel.Invoke();
+    }
+
     public void shiftBitsLeft()
     {
-        if (playerBitGroupScript.bitGroupValue << 1 < 1 << playerBitGroupScript.binaryVersion.Length)
-            playerBitGroupScript.bitGroupValue <<= 1;
+        if (playerBitGroupScript.bitGroupIntValue << 1 < 1 << playerBitGroupScript.bitGroupBinaryString.Length && LoadBitLevel.getCurrentLevelData().Contains("<"))
+        {
+            Globals.audioManager.playSoundByName("shiftLeft");
+            playerBitGroupScript.bitGroupIntValue <<= 1;
+        }
     }
 
     public void shiftBitsRight()
     {
-        playerBitGroupScript.bitGroupValue >>= 1;
+        if (LoadBitLevel.getCurrentLevelData().Contains(">"))
+        {
+            Globals.audioManager.playSoundByName("shiftRight");
+            playerBitGroupScript.bitGroupIntValue >>= 1;
+        }
+            
     }
 
     public void andBits()
     {
-        playerBitGroupScript.bitGroupValue &= toolBoxBitGroup.bitGroupValue;
+        if (LoadBitLevel.getCurrentLevelData().Contains("a"))
+        {
+            playerBitGroupScript.bitGroupIntValue &= toolBoxBitGroup.bitGroupIntValue;
+            Globals.audioManager.playSoundByName("andGate");
+        }
     }
 
     public void orBits()
     {
-        playerBitGroupScript.bitGroupValue |= toolBoxBitGroup.bitGroupValue;
+        if (LoadBitLevel.getCurrentLevelData().Contains("o"))
+        {
+            playerBitGroupScript.bitGroupIntValue |= toolBoxBitGroup.bitGroupIntValue;
+            Globals.audioManager.playSoundByName("orGate");
+        }
     }
 
     public void xorBits()
     {
-        playerBitGroupScript.bitGroupValue ^= toolBoxBitGroup.bitGroupValue;
+        if (LoadBitLevel.getCurrentLevelData().Contains("x"))
+        {
+            playerBitGroupScript.bitGroupIntValue ^= toolBoxBitGroup.bitGroupIntValue;
+            Globals.audioManager.playSoundByName("xorGate");
+        }
     }
 
     // Update is called once per frame
@@ -102,5 +142,6 @@ public class PlayerBitInput : MonoBehaviour
     {
         playerInput();
         checkAnswer();
+
     }
 }

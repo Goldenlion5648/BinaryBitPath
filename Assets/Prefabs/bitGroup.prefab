@@ -45,6 +45,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bitPrefab: {fileID: 5504553842166931373, guid: c1bbd43d68dd9c349bb7893affba5036, type: 3}
   bitList: []
-  distBetween: 1.2
+  distBetween: 1
   startValue: 6
-  bitGroupValue: 0
+  bitGroupBinaryString: 
+  maxDigits: 10
+  bitGroupIntValue: 0
+  groupType: 0

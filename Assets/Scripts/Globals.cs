@@ -9,9 +9,14 @@ public class Globals : MonoBehaviour
     public static int playerCoordsX = 0;
     public static int playerCoordsY = 0;
 
+    public static AudioManager audioManager;
+    
+
     // Start is called before the first frame update
     void Start()
     {
+        audioManager = GameObject.Find("AudioController").GetComponent<AudioManager>();
+        print("found this audio manager" + audioManager.gameObject.name);
         // makeInitialMap();
     }
 

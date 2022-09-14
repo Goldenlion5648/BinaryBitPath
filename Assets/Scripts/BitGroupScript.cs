@@ -10,11 +10,13 @@ public class BitGroupScript : MonoBehaviour
     public float distBetween;
 
     public int startValue;
-    public string binaryVersion;
+    public string bitGroupBinaryString;
 
     public int maxDigits = 10;
-    int oldBitGroupValue = -1;
-    public int bitGroupValue;
+    int oldBitGroupIntValue = -1;
+    public int bitGroupIntValue;
+
+    static int sizeToPadTo = 0;
 
     public enum bitGroupType {
         goal = 0,
@@ -27,25 +29,26 @@ public class BitGroupScript : MonoBehaviour
     void Start()
     {
         bitList = new List<GameObject>();
-        reset();
+        // reset();
 
-        // LoadBitLevel.levelCompleteEvent.AddListener(reset);
+        LoadBitLevel.resetForNewLevel.AddListener(reset);
+        LoadBitLevel.resetForNewLevel.Invoke();
 
     }
 
     void setBinaryVersion()
     {
-        binaryVersion = Convert.ToString(bitGroupValue, 2);
+        bitGroupBinaryString = Convert.ToString(bitGroupIntValue, 2).PadLeft(sizeToPadTo, '0');
     }
 
     void generateBitGroup(int x)
     {
-        bitGroupValue = x;
+        bitGroupIntValue = x;
         setBinaryVersion();
         // print($"binary version of {x} is {binaryVersion}");
         float xOffset = 0;
         bitList.Clear();
-        for (int i = binaryVersion.Length - 1; i >= 0; i--)
+        for (int i = bitGroupBinaryString.Length - 1; i >= 0; i--)
         {
             bitList.Add(Instantiate(bitPrefab, transform.position + new Vector3(xOffset, 0, 0), Quaternion.identity, transform));
             xOffset += distBetween;
@@ -60,8 +63,9 @@ public class BitGroupScript : MonoBehaviour
         {
             Destroy(bitList[i]);
         }
+        sizeToPadTo = LoadBitLevel.getLongestStringLengthOnLevel();
         generateBitGroup(Convert.ToInt32(LoadBitLevel.getBitsForBitGroup(groupType), 2));
-        oldBitGroupValue = -10;
+        oldBitGroupIntValue = -10;
         // updateBitColors();
     }
 
@@ -70,16 +74,16 @@ public class BitGroupScript : MonoBehaviour
         setBinaryVersion();
         for (int i = 0; i < bitList.Count; i++)
         {
-            bitList[i].GetComponent<bitScript>().setBitState(binaryVersion[i] == '1');
+            bitList[i].GetComponent<bitScript>().setBitState(bitGroupBinaryString[i] == '1');
         }
-        oldBitGroupValue = bitGroupValue;
+        oldBitGroupIntValue = bitGroupIntValue;
     }
 
     
     // Update is called once per frame
     void Update()
     {
-        if (oldBitGroupValue != bitGroupValue)
+        if (oldBitGroupIntValue != bitGroupIntValue)
             updateBitColors();
     }
 }
