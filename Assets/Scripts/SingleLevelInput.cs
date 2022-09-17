@@ -12,13 +12,13 @@ public class SingleLevelInput
     public static readonly string LEFT_SHIFT_LETTER = "<";
     public static readonly string RIGHT_SHIFT_LETTER = ">";
 
-    public string goal { get; private set; }
-    public string constant { get; private set; }
-    public string playerBoard { get; private set; }
+    // public string goal { get; private set; }
+    // public string constant { get; private set; }
+    // public string playerBoard { get; private set; }
     public string symbols { get; private set; }
 
     string[] propArray = new string[3];
-    public SingleLevelInput(params string [] lines )
+    public SingleLevelInput(params string[] lines)
     {
         symbols = lines[0];
         // (this.symbols, this.goal, this.constant, this.playerBoard) = lines.to;
@@ -27,12 +27,18 @@ public class SingleLevelInput
         // this.playerBoard = playerBoard;
 
         propArray = lines.Skip(1).ToArray();
+        // Debug.Log("set prop array to" + )
 
     }
 
     public string this[int i]
     {
-        get { return propArray[i]; }
+        get
+        {
+            // Debug.Log("asking about position " + i);
+            // Debug.Log("prop array length" + propArray.Length);
+            return propArray[i];
+        }
     }
 
     public bool Contains(string x)
@@ -43,5 +49,12 @@ public class SingleLevelInput
     public int getMaxBitStringLengthOnLevel()
     {
         return Mathf.Max(propArray.Select(x => x.Length).ToArray());
+    }
+
+    public override string ToString()
+    {
+        // Debug.Log("prop array len" + propArray.Length);
+        return String.Join("\n", symbols, propArray);
+
     }
 }

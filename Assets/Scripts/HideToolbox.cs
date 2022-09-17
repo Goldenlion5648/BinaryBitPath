@@ -6,7 +6,7 @@ public class HideToolbox : MonoBehaviour
 {
 
     [SerializeField]
-    bool isOn = true;
+    bool isOn = false;
     BitGroupScript toolboxBitGroup;
     // Start is called before the first frame update
     void Start()
@@ -16,15 +16,15 @@ public class HideToolbox : MonoBehaviour
 
     void hideToolbox()
     {
-        if (isOn == (toolboxBitGroup.bitGroupIntValue == 0))
+        foreach (var child in transform.GetComponentsInChildren<Transform>())
         {
-            isOn = !isOn;
-            foreach (var child in transform.GetComponentsInChildren<Transform>())
-            {
-                if(child == transform)
-                    continue;
-                child.GetComponent<Renderer>().enabled = isOn;
-            }
+            if (child == transform)
+                continue;
+            // isOn = !isOn;
+            child.GetComponent<Renderer>().enabled = toolboxBitGroup.bitGroupIntValue != 0;
+        }
+        if (toolboxBitGroup.bitGroupIntValue == 0)
+        {
         }
     }
     // Update is called once per frame

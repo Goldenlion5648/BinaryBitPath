@@ -23,6 +23,7 @@ public class AudioManager : MonoBehaviour
         // {
         //     return;
         // }
+        print("about to play sound" + name);
         Sound toPlay = Array.Find(sounds, x => x.name == name);
 
         if (varyPitch)

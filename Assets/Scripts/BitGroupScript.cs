@@ -1,22 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using UnityEngine;
 
 public class BitGroupScript : MonoBehaviour
 {
     public GameObject bitPrefab;
+
+    GameObject trashCan;
     public List<GameObject> bitList;
     public float distBetween;
 
     public int startValue;
     public string bitGroupBinaryString;
 
-    public int maxDigits = 10;
     int oldBitGroupIntValue = -1;
     public int bitGroupIntValue;
 
-    static int sizeToPadTo = 0;
+    public static int sizeToPadTo = 0;
 
     public enum bitGroupType {
         goal = 0,
@@ -50,11 +52,21 @@ public class BitGroupScript : MonoBehaviour
         bitList.Clear();
         for (int i = bitGroupBinaryString.Length - 1; i >= 0; i--)
         {
-            bitList.Add(Instantiate(bitPrefab, transform.position + new Vector3(xOffset, 0, 0), Quaternion.identity, transform));
+            var currentBit = Instantiate(bitPrefab, transform.position + new Vector3(xOffset, 0, 0), Quaternion.identity, transform);
+
+            currentBit.GetComponent<bitScript>().isGoalBit = groupType == bitGroupType.goal;
+
+            bitList.Add(currentBit);
             xOffset += distBetween;
         }
+        spawnTrashCan();
         print("new bit list length" + bitList.Count);
 
+    }
+
+    void spawnTrashCan()
+    {
+        // trashCan = Instantiate()
     }
 
     void reset()
@@ -64,7 +76,10 @@ public class BitGroupScript : MonoBehaviour
             Destroy(bitList[i]);
         }
         sizeToPadTo = LoadBitLevel.getLongestStringLengthOnLevel();
-        generateBitGroup(Convert.ToInt32(LoadBitLevel.getBitsForBitGroup(groupType), 2));
+        print("trying to parse line" + LoadBitLevel.getBitsForBitGroup(groupType));
+        string filtered = String.Join("",LoadBitLevel.getBitsForBitGroup(groupType).TakeWhile(x => "10".Contains(x)).ToArray());
+        print("filtered version" + filtered);
+        generateBitGroup(Convert.ToInt32(filtered, 2));
         oldBitGroupIntValue = -10;
         // updateBitColors();
     }

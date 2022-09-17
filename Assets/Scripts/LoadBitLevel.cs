@@ -16,6 +16,7 @@ public class LoadBitLevel : MonoBehaviour
 
     public static int currentLevel = 0;
     public bool playNewest;
+    public bool testingMode;
     public bool skipAhead;
     public int levelToSkipTo;
 
@@ -25,14 +26,15 @@ public class LoadBitLevel : MonoBehaviour
     void Start()
     {
         resetForNewLevel = new UnityEvent();
-        parse();
         currentLevel = 0;
-        if (playNewest)
+        if (testingMode)
+            bitLevelPath = System.IO.Path.Combine(Application.streamingAssetsPath, "bitLevels", "testing.txt");
+        else if (playNewest)
             currentLevel = levels.Count - 1;
-        else if(skipAhead)
+        else if (skipAhead)
             currentLevel = levelToSkipTo;
 
-
+        parse();
     }
 
     void advanceLevel()
@@ -45,20 +47,36 @@ public class LoadBitLevel : MonoBehaviour
         var noCommentRegex = new Regex(@"^[^#]+");
         var ret = noCommentRegex.Match(line).ToString();
         Debug.Assert(ret != "");
+        print("line is " + ret);
         return ret;
     }
 
     void parse()
     {
-        var contents = File.ReadAllText(bitLevelPath).Trim().Split(new string[]{"\n\n"}, StringSplitOptions.None);
+        Regex doubleNewLineRegex = new Regex(@"[\n]{2,}");
+        string[] contents = doubleNewLineRegex.Split(File.ReadAllText(bitLevelPath).Trim());
+        print("contents follow:");
+        Array.ForEach(contents, x => print(x));
+        print("content len" + contents.Length);
         foreach (var level in contents)
         {
-            // print("level is " + level);
+            print("level is " + level);
             var cur = new SingleLevelInput(level.Split('\n').Select(x => getLevelLine(x)).ToArray());
-            levels.Add(cur);
 
+            levels.Add(cur);
         }
-        
+
+        print("levels loaded are:");
+
+        int levelNum = 0;
+        foreach(var level in levels)
+        {
+            print(levelNum);
+            print(level);
+            levelNum += 1;
+            
+        }
+
         // for (int i = 0; i < contents.Length - numLinesInLevel; i += numLinesInLevel + 1)
         // {
         //     var cur = new SingleLevelInput(
@@ -72,11 +90,13 @@ public class LoadBitLevel : MonoBehaviour
 
     public static string getBitsForBitGroup(BitGroupScript.bitGroupType pos)
     {
+        // print("running getBitsForBitGroup for current level " + currentLevel + " with position " + pos);
         return levels[currentLevel][(int)pos];
     }
 
     public static int getLongestStringLengthOnLevel()
     {
+        // print("running getLongestStringLengthOnLevel for current level " + currentLevel );
         return levels[currentLevel].getMaxBitStringLengthOnLevel();
     }
 

@@ -7,7 +7,11 @@ public class PlayerBitInput : MonoBehaviour
 {
     float oldRawInputHorizontal = 0;
 
+    public Transform playerBitsTransform;
+
     public static int playerLevel = 0;
+
+    public GameObject fallingBit;
 
     BitGroupScript playerBitGroupScript;
     public BitGroupScript toolBoxBitGroup;
@@ -38,12 +42,26 @@ public class PlayerBitInput : MonoBehaviour
 
     IEnumerator winAnimation()
     {
-        yield return new WaitForSeconds(.1f);
+        // yield return new WaitForSeconds(.5f);
+        for (int i = 0; i < 5; i++)
+        {
+            foreach (var bit in playerBitGroupScript.bitList)
+            {
+                var curBitScript = bit.GetComponent<bitScript>();
+                if (curBitScript.isOn)
+                {
+                    curBitScript.isGoalBit = !curBitScript.isGoalBit;
+                    curBitScript.setBitState(true);
+
+                }
+            }
+            yield return new WaitForSeconds(.2f);
+        }
+
         isCorrect = false;
         LoadBitLevel.currentLevel += 1;
         print("increased level");
         levelCompleteCoroutine = null;
-
         LoadBitLevel.resetForNewLevel.Invoke();
 
 
@@ -88,15 +106,23 @@ public class PlayerBitInput : MonoBehaviour
 
     public void reset()
     {
+        Globals.audioManager.playSoundByName("reset");
         LoadBitLevel.resetForNewLevel.Invoke();
     }
 
     public void shiftBitsLeft()
     {
-        if (playerBitGroupScript.bitGroupIntValue << 1 < 1 << playerBitGroupScript.bitGroupBinaryString.Length && LoadBitLevel.getCurrentLevelData().Contains("<"))
+        if (LoadBitLevel.getCurrentLevelData().Contains("<"))
         {
-            Globals.audioManager.playSoundByName("shiftLeft");
-            playerBitGroupScript.bitGroupIntValue <<= 1;
+            if (playerBitGroupScript.bitGroupIntValue << 1 < 1 << playerBitGroupScript.bitGroupBinaryString.Length)
+            {
+                Globals.audioManager.playSoundByName("shiftLeft");
+                playerBitGroupScript.bitGroupIntValue <<= 1;
+            }
+            else
+            {
+                Globals.audioManager.playSoundByName("hitWall");
+            }
         }
     }
 
@@ -105,9 +131,16 @@ public class PlayerBitInput : MonoBehaviour
         if (LoadBitLevel.getCurrentLevelData().Contains(">"))
         {
             Globals.audioManager.playSoundByName("shiftRight");
+            if ((playerBitGroupScript.bitGroupIntValue & 1) > 0)
+            {
+                var currentFalling = Instantiate(fallingBit, playerBitsTransform.position + new Vector3(playerBitGroupScript.distBetween * BitGroupScript.sizeToPadTo, 0), Quaternion.Euler(new Vector3(0, 0, -20)));
+
+                currentFalling.GetComponent<bitScript>().setBitState(true);
+                Destroy(currentFalling, 5f);
+                Globals.audioManager.playSoundByName("bitFalling");
+            }
             playerBitGroupScript.bitGroupIntValue >>= 1;
         }
-            
     }
 
     public void andBits()
