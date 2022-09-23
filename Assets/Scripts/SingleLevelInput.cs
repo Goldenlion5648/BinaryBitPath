@@ -8,6 +8,7 @@ public class SingleLevelInput
 {
     public static readonly string AND_LETTER = "a";
     public static readonly string OR_LETTER = "o";
+    public static readonly string NOT_LETTER = "n";
     public static readonly string XOR_LETTER = "x";
     public static readonly string LEFT_SHIFT_LETTER = "<";
     public static readonly string RIGHT_SHIFT_LETTER = ">";
@@ -16,11 +17,22 @@ public class SingleLevelInput
     // public string constant { get; private set; }
     // public string playerBoard { get; private set; }
     public string symbols { get; private set; }
+    public static readonly int DUMMY_LIMIT = 1000;
+    public int moveLimit;
+
 
     string[] propArray = new string[3];
     public SingleLevelInput(params string[] lines)
     {
-        symbols = lines[0];
+        moveLimit = DUMMY_LIMIT;
+        if (char.IsDigit(lines[0][0]))
+        {
+            moveLimit = Convert.ToInt32(String.Concat(lines[0].TakeWhile(x => char.IsDigit(x))));
+            //level input is the number of moves that it takes, 
+            //but the stack needs the first state
+            moveLimit += 1;
+        }
+        symbols = String.Concat(lines[0].SkipWhile(x => char.IsDigit(x)));
         // (this.symbols, this.goal, this.constant, this.playerBoard) = lines.to;
         // this.goal = goal;
         // this.constant = constant;

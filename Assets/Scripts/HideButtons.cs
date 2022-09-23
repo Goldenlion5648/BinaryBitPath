@@ -10,6 +10,7 @@ public class HideButtons : MonoBehaviour
     public GameObject xorButton;
     public GameObject leftShiftButton;
     public GameObject rightShiftButton;
+    public GameObject notButton;
     Dictionary<string, GameObject> toCheck = new Dictionary<string, GameObject>();
     // Start is called before the first frame update
     void Start()
@@ -19,8 +20,8 @@ public class HideButtons : MonoBehaviour
         toCheck.Add(SingleLevelInput.XOR_LETTER, xorButton);
         toCheck.Add(SingleLevelInput.LEFT_SHIFT_LETTER, leftShiftButton);
         toCheck.Add(SingleLevelInput.RIGHT_SHIFT_LETTER, rightShiftButton);
+        toCheck.Add(SingleLevelInput.NOT_LETTER, notButton);
         LoadBitLevel.resetForNewLevel.AddListener(reloadVisibility);
-        
 
     }
 
@@ -28,7 +29,21 @@ public class HideButtons : MonoBehaviour
     {
         foreach (var key in toCheck.Keys)
         {
-            toCheck[key].SetActive(LoadBitLevel.getCurrentLevelData().Contains(key));
+            if (LoadBitLevel.getSymbolsSeenUntilCurrentLevel().Contains(key) == false)
+            {
+                toCheck[key].SetActive(false);
+                continue;
+            }
+            toCheck[key].SetActive(true);
+            toCheck[key].transform.Find("xSymbol").gameObject.SetActive(!LoadBitLevel.getCurrentLevelData().Contains(key));
+            // if(LoadBitLevel.getCurrentLevelData().Contains(key) == false)
+            // {
+            // }
+            // else {
+
+            //     toCheck[key].transform.Find("xSymbol").gameObject.SetActive(false);    
+            // }
+            toCheck[key].GetComponent<clickableObject>().allowClicking = LoadBitLevel.getCurrentLevelData().Contains(key);
         }
     }
 

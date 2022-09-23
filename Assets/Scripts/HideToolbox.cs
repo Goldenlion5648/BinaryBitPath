@@ -23,8 +23,9 @@ public class HideToolbox : MonoBehaviour
             // isOn = !isOn;
             child.GetComponent<Renderer>().enabled = toolboxBitGroup.bitGroupIntValue != 0;
         }
-        if (toolboxBitGroup.bitGroupIntValue == 0)
+        if (toolboxBitGroup.bitGroupIntValue != 0)
         {
+            // print("toolbox value" + toolboxBitGroup.bitGroupIntValue);
         }
     }
     // Update is called once per frame

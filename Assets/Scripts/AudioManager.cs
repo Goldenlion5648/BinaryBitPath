@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
     public Sound[] sounds;
+    List<string> soundNamesPlayed = new List<string>();
     // Start is called before the first frame update
     private void Awake()
     {
@@ -24,6 +26,20 @@ public class AudioManager : MonoBehaviour
         //     return;
         // }
         print("about to play sound" + name);
+        soundNamesPlayed.Add(name);
+        if (name == "reset")
+        {
+            soundNamesPlayed.Clear();
+        }
+        if (name == "levelComplete")
+        {
+            // print("sequence used:");
+            // Array.ForEach(soundNamesPlayed.ToArray(), x => print(x));
+            soundNamesPlayed.RemoveAt(soundNamesPlayed.Count - 1);
+            print("sequence used:\n" + String.Join("\n", soundNamesPlayed));
+            soundNamesPlayed.Clear();
+
+        }
         Sound toPlay = Array.Find(sounds, x => x.name == name);
 
         if (varyPitch)

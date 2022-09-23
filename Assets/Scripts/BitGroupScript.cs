@@ -7,6 +7,7 @@ using UnityEngine;
 public class BitGroupScript : MonoBehaviour
 {
     public GameObject bitPrefab;
+    public GameObject brokenBitOverlayPrefab;
 
     GameObject trashCan;
     public List<GameObject> bitList;
@@ -15,12 +16,14 @@ public class BitGroupScript : MonoBehaviour
     public int startValue;
     public string bitGroupBinaryString;
 
-    int oldBitGroupIntValue = -1;
-    public int bitGroupIntValue;
+    uint oldBitGroupIntValue = UInt32.MaxValue;
+    uint dummyOldValue = UInt32.MaxValue;
+    public uint bitGroupIntValue;
 
     public static int sizeToPadTo = 0;
 
-    public enum bitGroupType {
+    public enum bitGroupType
+    {
         goal = 0,
         constant = 1,
         player = 2
@@ -43,7 +46,7 @@ public class BitGroupScript : MonoBehaviour
         bitGroupBinaryString = Convert.ToString(bitGroupIntValue, 2).PadLeft(sizeToPadTo, '0');
     }
 
-    void generateBitGroup(int x)
+    void generateBitGroup(uint x)
     {
         bitGroupIntValue = x;
         setBinaryVersion();
@@ -52,15 +55,28 @@ public class BitGroupScript : MonoBehaviour
         bitList.Clear();
         for (int i = bitGroupBinaryString.Length - 1; i >= 0; i--)
         {
-            var currentBit = Instantiate(bitPrefab, transform.position + new Vector3(xOffset, 0, 0), Quaternion.identity, transform);
+            GameObject currentBit;
+            // else
+            // {
+            currentBit = Instantiate(bitPrefab, transform.position + new Vector3(xOffset, 0, 0), Quaternion.identity, transform);
+            // }
+            if (i == 0 && groupType == bitGroupType.player)
+            {
+                var overlay = Instantiate(brokenBitOverlayPrefab, currentBit.transform.position + new Vector3(0, 0, -5), Quaternion.identity, currentBit.transform);
+            }
 
             currentBit.GetComponent<bitScript>().isGoalBit = groupType == bitGroupType.goal;
+
+            if (groupType == bitGroupType.constant && bitGroupIntValue == 0)
+            {
+                currentBit.GetComponent<Renderer>().enabled = false;
+            }
 
             bitList.Add(currentBit);
             xOffset += distBetween;
         }
         spawnTrashCan();
-        print("new bit list length" + bitList.Count);
+        // print("new bit list length" + bitList.Count);
 
     }
 
@@ -76,11 +92,11 @@ public class BitGroupScript : MonoBehaviour
             Destroy(bitList[i]);
         }
         sizeToPadTo = LoadBitLevel.getLongestStringLengthOnLevel();
-        print("trying to parse line" + LoadBitLevel.getBitsForBitGroup(groupType));
-        string filtered = String.Join("",LoadBitLevel.getBitsForBitGroup(groupType).TakeWhile(x => "10".Contains(x)).ToArray());
-        print("filtered version" + filtered);
-        generateBitGroup(Convert.ToInt32(filtered, 2));
-        oldBitGroupIntValue = -10;
+        // print("trying to parse line" + LoadBitLevel.getBitsForBitGroup(groupType));
+        string filtered = String.Join("", LoadBitLevel.getBitsForBitGroup(groupType).TakeWhile(x => "10".Contains(x)).ToArray());
+        // print("filtered version" + filtered);
+        generateBitGroup(Convert.ToUInt32(filtered, 2));
+        oldBitGroupIntValue = dummyOldValue;
         // updateBitColors();
     }
 
@@ -94,7 +110,7 @@ public class BitGroupScript : MonoBehaviour
         oldBitGroupIntValue = bitGroupIntValue;
     }
 
-    
+
     // Update is called once per frame
     void Update()
     {

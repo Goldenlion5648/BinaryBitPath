@@ -44,10 +44,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bitPrefab: {fileID: 5504553842166931373, guid: c1bbd43d68dd9c349bb7893affba5036, type: 3}
+  brokenBitOverlayPrefab: {fileID: 7580172421768705317, guid: 2cec79a58b5d5e941bf2a52b11e62b3a, type: 3}
   bitList: []
   distBetween: 1
   startValue: 6
   bitGroupBinaryString: 
-  maxDigits: 10
   bitGroupIntValue: 0
   groupType: 0
