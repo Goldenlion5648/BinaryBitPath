@@ -114,6 +114,7 @@ MonoBehaviour:
   offMaterial: {fileID: 2100000, guid: 87bbda58de840d846928bcf0481eaa07, type: 2}
   goalMaterial: {fileID: 2100000, guid: cdd3c6097059c044c9e72cf74c1b7e50, type: 2}
   isGoalBit: 0
+  isOn: 0
 --- !u!54 &12432439907350340
 Rigidbody:
   m_ObjectHideFlags: 0

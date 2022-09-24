@@ -21,7 +21,7 @@ public class HideButtons : MonoBehaviour
         toCheck.Add(SingleLevelInput.LEFT_SHIFT_LETTER, leftShiftButton);
         toCheck.Add(SingleLevelInput.RIGHT_SHIFT_LETTER, rightShiftButton);
         toCheck.Add(SingleLevelInput.NOT_LETTER, notButton);
-        LoadBitLevel.resetForNewLevel.AddListener(reloadVisibility);
+        CustomEvents.resetForNewLevelEvent.AddListener(reloadVisibility);
 
     }
 

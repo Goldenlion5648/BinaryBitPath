@@ -8,7 +8,9 @@ public class bitScript : MonoBehaviour
     public Material onMaterial;
     public Material offMaterial;
     public Material goalMaterial;
+    public Material lockedMaterial;
     public bool isGoalBit;
+    public bool isLockedBit;
 
     public bool isOn = false;
     // Start is called before the first frame update
@@ -29,6 +31,10 @@ public class bitScript : MonoBehaviour
         else if (isGoalBit)
         {
             rend.material = goalMaterial;
+        }
+        else if (isLockedBit)
+        {
+            rend.material = lockedMaterial;
         }
         else
         {

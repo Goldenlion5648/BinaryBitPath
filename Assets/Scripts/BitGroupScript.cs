@@ -36,8 +36,8 @@ public class BitGroupScript : MonoBehaviour
         bitList = new List<GameObject>();
         // reset();
 
-        LoadBitLevel.resetForNewLevel.AddListener(reset);
-        LoadBitLevel.resetForNewLevel.Invoke();
+        CustomEvents.resetForNewLevelEvent.AddListener(reset);
+        // CustomEvents.resetForNewLevel.Invoke();
 
     }
 
@@ -66,6 +66,7 @@ public class BitGroupScript : MonoBehaviour
             }
 
             currentBit.GetComponent<bitScript>().isGoalBit = groupType == bitGroupType.goal;
+            currentBit.GetComponent<bitScript>().isLockedBit = groupType == bitGroupType.constant;
 
             if (groupType == bitGroupType.constant && bitGroupIntValue == 0)
             {

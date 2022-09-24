@@ -4,6 +4,7 @@ import operator as op
 from math import *
 from functools import partial
 from collections import *
+import sys
 
 import argparse
 
@@ -60,7 +61,7 @@ def random_operations(player, constant):
         player_starting = 0
         symbols_used.clear()
 
-    print(message)
+    # print(message)
     return chosen
 
 def bfs(goal, const, start, symbols, limit=None):
@@ -90,55 +91,67 @@ def main(args):
         # print('=========')
         # a = bbin(a))
 
-        # printbbin(b))
-        print("========"*6)
-        print("start:")
-        print("const")
-        print(bbin(constant))
-        print("player")
-        print(bbin(player_starting))
+        # print("========"*6)
+        # print("start:")
+        # print("const")
+        # print(bbin(constant))
+        # print("player")
+        # print(bbin(player_starting))
         cur = player_starting
         try:
-            for i in range(random.randint(6, 6)):
+            for i in range(random.randint(6, 12)):
                 cur = random_operations(cur, constant)
-                print(bbin(cur))
+                # print(bbin(cur))
         except InfiniteLoopException:
             continue
 
         symbols_string = get_symbol_string(symbols_used)
         if bbin(cur).count("1") <=3 or len(bbin(cur)) > len(bbin(player_starting)):
-            print("skipping")
-            print("$"*30)
+            # print("skipping")
+            # print("$"*30)
             continue
         bfs_result = bfs(cur, constant, player_starting, symbols_string)
-        print()
-        print("bfs way", bfs_result)
-        print("result")
-        print(symbols_string)
-        print(bbin(cur))
-        print(bbin(constant))
-        print(bbin(player_starting))
-        # print("=======")
+        # print()
+        # print("bfs way", bfs_result)
+        # print("result")
+        # print(symbols_string)
+        # print(bbin(cur))
         # print(bbin(constant))
+        # print(bbin(player_starting))
         full_process = "".join(symbols_used)
-        print(full_process)
+        # print(full_process)
         if len(bfs_result[1]) < len(full_process):
             print("using bfs way for shorter path")
             full_process = bfs_result[1]
             symbols_string = get_symbol_string(full_process)
-            print(full_process)
+            # print(full_process)
         else:
             full_process = "".join(symbols_used)
         # print(bbin(player))
-        keep = input()
-        if keep:
+        if len(symbols_string) not in range(args.lo_symbols, args.max_symbols + 1) or len(full_process) not in range(args.lo_moves, args.upper_moves + 1):
+            continue
+        print("found one")
+        if (args.num_puzzles_to_gen != -1) or input():
             with open(TESTING_FILE_PATH, 'a') as f:
-                print(f"{len(full_process) if args.force else ''}{symbols_string}", bbin(cur), f'{bbin(constant)}#{full_process}',
-                    bbin(player_starting), "", sep='\n', file=f, end='\n')
+                for out in [f, sys.stdout]:
+                    print(f"{len(full_process) if args.force else ''}{symbols_string}", 
+                    bbin(cur), 
+                    f'{bbin(constant)}#{full_process}',
+                    bbin(player_starting), "", 
+                    sep='\n', file=out, end='\n')
+            if args.num_puzzles_to_gen > 0:
+                args.num_puzzles_to_gen -= 1
+                if args.num_puzzles_to_gen == 0:
+                    break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--force", help="should the shortest path be forced?", action="store_true")
+    parser.add_argument("-p", "--num_puzzles_to_gen", help="total number of puzzles to generate?", type=int, default=-1)
+    parser.add_argument("-l", "--lo_symbols", help="min number of symbols allowed?", type=int, default=1)
+    parser.add_argument("-m", "--max_symbols", help="max number of symbols allowed?", type=int, default=10)
+    parser.add_argument("-v", "--lo_moves", help="min number of moves allowed?", type=int, default=1)
+    parser.add_argument("-u", "--upper_moves", help="upper bound on number of moves allowed?", type=int, default=15)
     args = parser.parse_args()
     try:
         main(args)

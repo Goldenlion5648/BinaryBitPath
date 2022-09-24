@@ -14,8 +14,8 @@ public class AnimateTexture : MonoBehaviour
     void Start()
     {
         render = GetComponent<Renderer>();
-        curXOffset = render.material.GetTextureOffset("_MainTex").x;
-        curYOffset = render.material.GetTextureOffset("_MainTex").y;
+        curXOffset = render.material.GetTextureOffset("_BaseMap").x;
+        curYOffset = render.material.GetTextureOffset("_BaseMap").y;
 
 
     }
@@ -28,7 +28,7 @@ public class AnimateTexture : MonoBehaviour
             curYOffset = (curYOffset + animationSpeedY * Time.deltaTime) % render.material.mainTextureScale.y;
         var offset = new Vector2(curXOffset, curYOffset);
 
-        render.material.SetTextureOffset("_MainTex", offset);
+        render.material.SetTextureOffset("_BaseMap", offset);
 
     }
 }

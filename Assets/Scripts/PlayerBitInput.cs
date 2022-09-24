@@ -32,7 +32,7 @@ public class PlayerBitInput : MonoBehaviour
     void Start()
     {
         assignKeys();
-        LoadBitLevel.resetForNewLevel.AddListener(runOnReset);
+        CustomEvents.resetForNewLevelEvent.AddListener(runOnReset);
 
         // keyToOperation.Add(KeyCode.A, shiftBitsLeft);
         // keyToOperation.Add(KeyCode.LeftArrow, shiftBitsLeft);
@@ -64,6 +64,7 @@ public class PlayerBitInput : MonoBehaviour
     IEnumerator winAnimation()
     {
         // yield return new WaitForSeconds(.5f);
+        CustomEvents.winAnimationEvent.Invoke();
         for (int i = 0; i < 5; i++)
         {
             foreach (var bit in playerBitGroupScript.bitList)
@@ -83,7 +84,7 @@ public class PlayerBitInput : MonoBehaviour
         LoadBitLevel.advanceLevel();
         print("increased level");
         levelCompleteCoroutine = null;
-        LoadBitLevel.resetForNewLevel.Invoke();
+        CustomEvents.resetForNewLevelEvent.Invoke();
     }
 
     void checkAnswer()
@@ -126,8 +127,8 @@ public class PlayerBitInput : MonoBehaviour
                 }
                 else
                 {
-                    print("player board is now:");
-                    print(Convert.ToString(playerBitGroupScript.bitGroupIntValue, 2));
+                    // print("player board is now:");
+                    // print(Convert.ToString(playerBitGroupScript.bitGroupIntValue, 2));
                 }
             }
         }
@@ -144,13 +145,13 @@ public class PlayerBitInput : MonoBehaviour
     {
         //only want the sound when player resets, not when new level start
         Globals.audioManager.playSoundByName("reset");
-        LoadBitLevel.resetForNewLevel.Invoke();
+        CustomEvents.resetForNewLevelEvent.Invoke();
     }
 
     bool allowedToPress()
     {
-        print("stack count " + movesMadeStack.Count);
-        print("move limit" + LoadBitLevel.getCurrentLevelData().moveLimit);
+        // print("stack count " + movesMadeStack.Count);
+        // print("move limit" + LoadBitLevel.getCurrentLevelData().moveLimit);
         bool ret = movesMadeStack.Count < LoadBitLevel.getCurrentLevelData().moveLimit;
         if (!ret)
             Globals.audioManager.playSoundByName("notAvailable");

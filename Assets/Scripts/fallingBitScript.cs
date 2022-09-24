@@ -12,10 +12,11 @@ public class fallingBitScript : MonoBehaviour
 
     IEnumerator spin()
     {
+        // transform.Translate(Vector3.right, Space.World);
         while (true)
         {
-            transform.Rotate(new Vector3(0, 0, -1));
-            yield return new WaitForSeconds(.02f);
+            transform.Rotate(new Vector3(0, 0, -2));
+            yield return new WaitForSeconds(.01f);
         }
     }
 

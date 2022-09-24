@@ -9,7 +9,6 @@ public class clickableObject : MonoBehaviour
 
 
     public bool allowClicking = true;
-
     Camera cam;
 
     // Use this for initialization

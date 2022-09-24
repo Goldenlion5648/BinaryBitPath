@@ -20,14 +20,13 @@ public class LoadBitLevel : MonoBehaviour
     public bool skipAhead;
     public int levelToSkipTo;
 
-    public static UnityEvent resetForNewLevel;
 
     public static Dictionary<int, HashSet<string>> symbolsSeenUntilNow;
 
     // Start is called before the first frame update
     void Start()
     {
-        resetForNewLevel = new UnityEvent();
+        
         if (testingMode)
             bitLevelPath = System.IO.Path.Combine(Application.streamingAssetsPath, "bitLevels", "testing.txt");
         parse();
@@ -85,6 +84,7 @@ public class LoadBitLevel : MonoBehaviour
     {
         Regex doubleNewLineRegex = new Regex(@"[\n]{2,}");
         string[] contents = doubleNewLineRegex.Split(File.ReadAllText(bitLevelPath).Trim());
+        contents = contents.Select(line => line.Trim()).ToArray();
         // print("contents follow:");
         // Array.ForEach(contents, x => print(x));
         // print("content len" + contents.Length);
