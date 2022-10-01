@@ -21,7 +21,7 @@ public class SingleLevelInput
     public int moveLimit;
 
 
-    string[] propArray = new string[3];
+    public string[] propArray = new string[3];
     public SingleLevelInput(params string[] lines)
     {
         moveLimit = DUMMY_LIMIT;
@@ -66,7 +66,7 @@ public class SingleLevelInput
     public override string ToString()
     {
         // Debug.Log("prop array len" + propArray.Length);
-        return String.Join("\n", symbols, propArray);
+        return String.Join("\n", symbols, String.Join("\n",propArray));
 
     }
 }

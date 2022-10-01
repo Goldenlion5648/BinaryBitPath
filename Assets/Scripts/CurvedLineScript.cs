@@ -20,9 +20,11 @@ public class CurvedLineScript : MonoBehaviour
         lineRend = GetComponent<LineRenderer>();
         // points.Add(goal.transform.position);
         updatePositions();
+        defaultCheckboxColors();
+        
         CustomEvents.resetForNewLevelEvent.AddListener(updatePositions);
         CustomEvents.winAnimationEvent.AddListener(showCorrectCheckboxColors);
-        CustomEvents.winAnimationEvent.AddListener(defaultCheckboxColors);
+        CustomEvents.resetForNewLevelEvent.AddListener(defaultCheckboxColors);
 
         // points.Add(player.transform.position);
     }
@@ -31,11 +33,13 @@ public class CurvedLineScript : MonoBehaviour
     {
         print("changed to correct colors");
         lineRend.material = correctMaterial;
+        transform.parent.gameObject.GetComponent<Renderer>().material = correctMaterial;
     }
 
     void defaultCheckboxColors()
     {
         lineRend.material = incompleteMaterial;
+        transform.parent.gameObject.GetComponent<Renderer>().material = incompleteMaterial;
     }
 
     void updatePositions()

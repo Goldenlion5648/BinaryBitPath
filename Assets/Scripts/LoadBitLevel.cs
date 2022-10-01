@@ -14,24 +14,24 @@ public class LoadBitLevel : MonoBehaviour
 
     public static List<SingleLevelInput> levels = new List<SingleLevelInput>();
 
-    public static int currentLevel = 0;
+    public static int currentLevel = -1;
     public bool playNewest;
     public bool testingMode;
     public bool skipAhead;
     public int levelToSkipTo;
-
 
     public static Dictionary<int, HashSet<string>> symbolsSeenUntilNow;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
         if (testingMode)
             bitLevelPath = System.IO.Path.Combine(Application.streamingAssetsPath, "bitLevels", "testing.txt");
         parse();
-        currentLevel = 0;
-        
+        if (currentLevel == -1)
+            currentLevel = SaveManager.Load().highestLevel;
+
         if (playNewest)
             currentLevel = levels.Count - 1;
         else if (skipAhead)
@@ -48,6 +48,9 @@ public class LoadBitLevel : MonoBehaviour
         {
             print("reset to level 0");
         }
+
+        SaveManager.Save();
+        CustomEvents.resetForNewLevelEvent.Invoke();
     }
 
     string getLevelLine(string line)
@@ -80,10 +83,36 @@ public class LoadBitLevel : MonoBehaviour
         }
     }
 
+    // void readContents()
+    // {
+    //     if (Application.platform != RuntimePlatform.WebGLPlayer)
+    //     {
+    //         content = File.ReadAllText(bitLevelPath).Trim();
+    //     }
+    //     else
+    //     {
+
+
+    //     }
+    // }
+
     void parse()
     {
-        Regex doubleNewLineRegex = new Regex(@"[\n]{2,}");
-        string[] contents = doubleNewLineRegex.Split(File.ReadAllText(bitLevelPath).Trim());
+        Regex doubleNewLineRegex = new Regex(@"[\r\n]{4,}");
+        string allLevels = Globals.levelContentHack.Trim();
+        // print("all characters");
+        // foreach(char c in allLevels)
+        // {
+        //     print($"{c} + {(int)c}");
+        // }
+        string[] contents = doubleNewLineRegex.Split(allLevels);
+        if (contents.Length == 1)
+        {
+            doubleNewLineRegex = new Regex(@"[\r\n]{2,}");
+            contents = doubleNewLineRegex.Split(allLevels);
+        }
+
+        print("content length" + contents.Length);
         contents = contents.Select(line => line.Trim()).ToArray();
         // print("contents follow:");
         // Array.ForEach(contents, x => print(x));
@@ -99,12 +128,12 @@ public class LoadBitLevel : MonoBehaviour
         // print("levels loaded are:");
 
         int levelNum = 0;
-        foreach(var level in levels)
+        foreach (var level in levels)
         {
             // print(levelNum);
             // print(level);
             levelNum += 1;
-            
+
         }
 
         // for (int i = 0; i < contents.Length - numLinesInLevel; i += numLinesInLevel + 1)

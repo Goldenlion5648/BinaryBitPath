@@ -10,10 +10,11 @@ public class PlayerBitInput : MonoBehaviour
     public Transform playerBitsTransform;
 
     public static int playerLevel = 0;
+    // public static int movesRemaining = 0;
 
     public GameObject fallingBit;
     public GameObject hitWallParticlePrefab;
-    public Vector3 particleOffset = new Vector3(-.5f, 0, -1);
+    public Vector3 particleOffset = new Vector3(-.5f, 0, -2);
 
 
     BitGroupScript playerBitGroupScript;
@@ -49,7 +50,9 @@ public class PlayerBitInput : MonoBehaviour
         allowedKeys.Add(resetKey);
         playerBitGroupScript = GetComponent<BitGroupScript>();
         keyToOperation.Add(KeyCode.W, andBits);
+        keyToOperation.Add(KeyCode.UpArrow, andBits);
         keyToOperation.Add(KeyCode.S, orBits);
+        keyToOperation.Add(KeyCode.DownArrow, orBits);
         keyToOperation.Add(KeyCode.R, xorBits);
         keyToOperation.Add(KeyCode.F, complementBits);
         // keyToOperation.Add(KeyCode.E, nandBits);
@@ -59,9 +62,19 @@ public class PlayerBitInput : MonoBehaviour
         keyToOperation.Add(KeyCode.LeftArrow, shiftBitsLeft);
         keyToOperation.Add(KeyCode.D, shiftBitsRight);
         keyToOperation.Add(KeyCode.RightArrow, shiftBitsRight);
+
+        //TODO: remove this cheat
+
+        // keyToOperation.Add(KeyCode.RightBracket, advanceLevelCheat);
     }
 
-    IEnumerator winAnimation()
+    void advanceLevelCheat()
+    {
+        isCorrect = true;
+        levelCompleteCoroutine = StartCoroutine(winAnimation(.001f));
+    }
+
+    IEnumerator winAnimation(float animateTime = .2f)
     {
         // yield return new WaitForSeconds(.5f);
         CustomEvents.winAnimationEvent.Invoke();
@@ -76,7 +89,7 @@ public class PlayerBitInput : MonoBehaviour
                     curBitScript.setBitState(true);
                 }
             }
-            yield return new WaitForSeconds(.2f);
+            yield return new WaitForSeconds(animateTime);
         }
 
         isCorrect = false;
@@ -84,7 +97,7 @@ public class PlayerBitInput : MonoBehaviour
         LoadBitLevel.advanceLevel();
         print("increased level");
         levelCompleteCoroutine = null;
-        CustomEvents.resetForNewLevelEvent.Invoke();
+
     }
 
     void checkAnswer()
@@ -138,6 +151,7 @@ public class PlayerBitInput : MonoBehaviour
     void runOnReset()
     {
         movesMadeStack.Clear();
+        // movesRemaining = LoadBitLevel.getCurrentLevelData().moveLimit;
 
     }
 
@@ -146,13 +160,19 @@ public class PlayerBitInput : MonoBehaviour
         //only want the sound when player resets, not when new level start
         Globals.audioManager.playSoundByName("reset");
         CustomEvents.resetForNewLevelEvent.Invoke();
+        // movesMadeStack.Add(playerBitGroupScript.bitGroupIntValue);
+        movesMadeStack.Clear();
+        endOfButtonPressCode();
+        // movesRemaining = LoadBitLevel.getCurrentLevelData().moveLimit;
     }
 
-    bool allowedToPress()
+    bool allowedToPress(string symbolKey)
     {
         // print("stack count " + movesMadeStack.Count);
         // print("move limit" + LoadBitLevel.getCurrentLevelData().moveLimit);
         bool ret = movesMadeStack.Count < LoadBitLevel.getCurrentLevelData().moveLimit;
+        ret &= LoadBitLevel.getCurrentLevelData().Contains(symbolKey);
+        // bool ret = movesRemaining > 0;
         if (!ret)
             Globals.audioManager.playSoundByName("notAvailable");
 
@@ -161,8 +181,16 @@ public class PlayerBitInput : MonoBehaviour
 
     void endOfButtonPressCode()
     {
-        if (movesMadeStack[movesMadeStack.Count - 1] != playerBitGroupScript.bitGroupIntValue)
+        //if a move actually made a difference from the previous state
+        if (movesMadeStack.Count > 0 && movesMadeStack[movesMadeStack.Count - 1] != playerBitGroupScript.bitGroupIntValue)
+        {
             movesMadeStack.Add(playerBitGroupScript.bitGroupIntValue);
+            // movesRemaining -= 1;
+        }
+
+        CustomEvents.madeMoveEvent.Invoke();
+        checkAnswer();
+
     }
 
     public void undo()
@@ -172,56 +200,59 @@ public class PlayerBitInput : MonoBehaviour
             movesMadeStack.RemoveAt(movesMadeStack.Count - 1);
             playerBitGroupScript.bitGroupIntValue = movesMadeStack[movesMadeStack.Count - 1];
             Globals.audioManager.playSoundByName("undo");
+            // movesRemaining += 1;
+        }
+        else
+        {
+            Globals.audioManager.playSoundByName("hitWall");
         }
     }
 
     public void shiftBitsLeft()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.LEFT_SHIFT_LETTER))
             return;
 
-        if (LoadBitLevel.getCurrentLevelData().Contains("<"))
+
+        if (playerBitGroupScript.bitGroupIntValue << 1 < 1 << playerBitGroupScript.bitGroupBinaryString.Length)
         {
-            if (playerBitGroupScript.bitGroupIntValue << 1 < 1 << playerBitGroupScript.bitGroupBinaryString.Length)
-            {
-                Globals.audioManager.playSoundByName("shiftLeft");
-                playerBitGroupScript.bitGroupIntValue <<= 1;
-                movesMadeStack.Add(playerBitGroupScript.bitGroupIntValue);
+            Globals.audioManager.playSoundByName("shiftLeft");
+            playerBitGroupScript.bitGroupIntValue <<= 1;
+            // movesMadeStack.Add(playerBitGroupScript.bitGroupIntValue);
 
-            }
-            else
-            {
-                Globals.audioManager.playSoundByName("hitWall");
-                Instantiate(hitWallParticlePrefab, playerBitsTransform.position + particleOffset, Quaternion.identity);
-
-            }
         }
+        else
+        {
+            Globals.audioManager.playSoundByName("hitWall");
+            Instantiate(hitWallParticlePrefab, playerBitsTransform.position + particleOffset, Quaternion.identity);
+        }
+        endOfButtonPressCode();
+
     }
 
     public void shiftBitsRight()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.RIGHT_SHIFT_LETTER))
             return;
-        if (LoadBitLevel.getCurrentLevelData().Contains(">"))
+
+        Globals.audioManager.playSoundByName("shiftRight");
+        if ((playerBitGroupScript.bitGroupIntValue & 1) > 0)
         {
-            Globals.audioManager.playSoundByName("shiftRight");
-            if ((playerBitGroupScript.bitGroupIntValue & 1) > 0)
-            {
-                var currentFalling = Instantiate(fallingBit, playerBitsTransform.position + new Vector3(playerBitGroupScript.distBetween * BitGroupScript.sizeToPadTo, 0), Quaternion.Euler(new Vector3(0, 0, -20)));
+            var currentFalling = Instantiate(fallingBit, playerBitsTransform.position + new Vector3(playerBitGroupScript.distBetween * BitGroupScript.sizeToPadTo, 0), Quaternion.Euler(new Vector3(0, 0, -20)));
 
-                currentFalling.GetComponent<bitScript>().setBitState(true);
-                Destroy(currentFalling, 5f);
-                Globals.audioManager.playSoundByName("bitFalling");
-            }
-            playerBitGroupScript.bitGroupIntValue >>= 1;
-            endOfButtonPressCode();
-
+            currentFalling.GetComponent<bitScript>().setBitState(true);
+            Destroy(currentFalling, 5f);
+            Globals.audioManager.playSoundByName("bitFalling");
         }
+        playerBitGroupScript.bitGroupIntValue >>= 1;
+        endOfButtonPressCode();
+
+
     }
 
     public void andBits()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.AND_LETTER))
             return;
         if (LoadBitLevel.getCurrentLevelData().Contains("a"))
         {
@@ -234,26 +265,23 @@ public class PlayerBitInput : MonoBehaviour
 
     public void orBits()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.OR_LETTER))
             return;
-        if (LoadBitLevel.getCurrentLevelData().Contains(SingleLevelInput.OR_LETTER))
-        {
-            playerBitGroupScript.bitGroupIntValue |= toolBoxBitGroup.bitGroupIntValue;
-            Globals.audioManager.playSoundByName("orGate");
-            endOfButtonPressCode();
-        }
+
+        playerBitGroupScript.bitGroupIntValue |= toolBoxBitGroup.bitGroupIntValue;
+        Globals.audioManager.playSoundByName("orGate");
+        endOfButtonPressCode();
+
     }
 
     public void xorBits()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.XOR_LETTER))
             return;
-        if (LoadBitLevel.getCurrentLevelData().Contains("x"))
-        {
-            playerBitGroupScript.bitGroupIntValue ^= toolBoxBitGroup.bitGroupIntValue;
-            Globals.audioManager.playSoundByName("xorGate");
-            endOfButtonPressCode();
-        }
+
+        playerBitGroupScript.bitGroupIntValue ^= toolBoxBitGroup.bitGroupIntValue;
+        Globals.audioManager.playSoundByName("xorGate");
+        endOfButtonPressCode();
     }
 
     void constrainSizeToBitsOnScreen()
@@ -263,16 +291,14 @@ public class PlayerBitInput : MonoBehaviour
 
     public void complementBits()
     {
-        if (!allowedToPress())
+        if (!allowedToPress(SingleLevelInput.NOT_LETTER))
             return;
 
-        if (LoadBitLevel.getCurrentLevelData().Contains(SingleLevelInput.NOT_LETTER))
-        {
-            playerBitGroupScript.bitGroupIntValue = ~(playerBitGroupScript.bitGroupIntValue);
-            constrainSizeToBitsOnScreen();
-            Globals.audioManager.playSoundByName("complementGate");
-            endOfButtonPressCode();
-        }
+
+        playerBitGroupScript.bitGroupIntValue = ~(playerBitGroupScript.bitGroupIntValue);
+        constrainSizeToBitsOnScreen();
+        Globals.audioManager.playSoundByName("complementGate");
+        endOfButtonPressCode();
     }
 
     public void nandBits()
@@ -295,7 +321,6 @@ public class PlayerBitInput : MonoBehaviour
     void Update()
     {
         playerInput();
-        checkAnswer();
 
     }
 }

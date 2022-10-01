@@ -5,8 +5,7 @@ using UnityEngine;
 public class HideToolbox : MonoBehaviour
 {
 
-    [SerializeField]
-    bool isOn = false;
+
     BitGroupScript toolboxBitGroup;
     // Start is called before the first frame update
     void Start()
@@ -20,7 +19,6 @@ public class HideToolbox : MonoBehaviour
         {
             if (child == transform)
                 continue;
-            // isOn = !isOn;
             child.GetComponent<Renderer>().enabled = toolboxBitGroup.bitGroupIntValue != 0;
         }
         if (toolboxBitGroup.bitGroupIntValue != 0)

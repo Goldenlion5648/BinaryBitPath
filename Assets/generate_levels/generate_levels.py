@@ -23,18 +23,29 @@ seen = set()
 previous = None
 ones_mask = 2 ** max_digits - 1
 max_steps = 8
-def get_ops(player, constant, x):
+letter_symbols = list("xoan><")
+# allowed = {
+
+# }
+def get_ops(player, constant, shift_amount):
+    allowed = args.symbols_allowed
+    # print("allowed", allowed)
+    # if allowed is None:
+    # else
     ops = [
         (op.xor(player, constant), "x"),
         (op.or_(player, constant), "o"),
         (op.and_(player, constant), "a"),
         (op.inv(player) & ones_mask, "n"),
-        (op.rshift(player, x), f"> by {x}"),
-        (op.lshift(player, x), f"< by {x}")
+        (op.rshift(player, shift_amount), f"> by {shift_amount}"),
+        (op.lshift(player, shift_amount), f"< by {shift_amount}")
     ]
     # print(ops)
     # print(ones_mask)
-    return [res for res in ops if res[0] < ones_mask]
+    # print("allowed", allowed)
+    r =  [res for res in ops if res[0] < ones_mask and res[1][0] in allowed]
+    # print("returning ", r)
+    return r
     
 def random_operations(player, constant):
     global previous, player_starting
@@ -65,26 +76,29 @@ def random_operations(player, constant):
     return chosen
 
 def bfs(goal, const, start, symbols, limit=None):
+    global args
     fringe = deque([(start, "")])
     seen = set()
+    # print("upper moves is", args.upper_moves)
     while fringe:
         cur, steps = fringe.popleft()
-        if cur in seen:
+        if cur in seen :
             continue
         seen.add(cur)
-        if cur == goal:
+        if cur == goal or len(steps) == limit:
             return (cur, steps)
         for result, symbol in get_ops(cur, const, 1):
             letter = symbol[0]
             if letter in symbols:
                 fringe.append((result, steps + letter))
+    # assert False
         
-def get_symbol_string(x):
+def get_symbols_available_string(x):
     return "".join(sorted(set(x), reverse=False))
 def main(args):
     global player_starting, symbols_used
     while True:
-        player_starting, constant = random.randint(0, 16), random.randint(16, ones_mask)
+        player_starting, constant = random.randint(0, 64), random.randint(1, ones_mask)
         symbols_used.clear()
         seen.clear()
         # print(bbin(a))
@@ -105,7 +119,7 @@ def main(args):
         except InfiniteLoopException:
             continue
 
-        symbols_string = get_symbol_string(symbols_used)
+        symbols_string = get_symbols_available_string(symbols_used)
         if bbin(cur).count("1") <=3 or len(bbin(cur)) > len(bbin(player_starting)):
             # print("skipping")
             # print("$"*30)
@@ -121,14 +135,19 @@ def main(args):
         full_process = "".join(symbols_used)
         # print(full_process)
         if len(bfs_result[1]) < len(full_process):
-            print("using bfs way for shorter path")
+            # print("using bfs way for shorter path")
             full_process = bfs_result[1]
-            symbols_string = get_symbol_string(full_process)
+            symbols_string = get_symbols_available_string(full_process)
             # print(full_process)
         else:
             full_process = "".join(symbols_used)
         # print(bbin(player))
-        if len(symbols_string) not in range(args.lo_symbols, args.max_symbols + 1) or len(full_process) not in range(args.lo_moves, args.upper_moves + 1):
+        symbol_range = range(args.lo_symbols, args.max_symbols + 1)
+        move_range = range(args.lo_moves, args.upper_moves + 1)
+        # print("symbol_range",  symbol_range)
+        # print("move_range",  move_range)
+        if len(symbols_string) not in symbol_range or len(full_process) not in move_range:
+
             continue
         print("found one")
         if (args.num_puzzles_to_gen != -1) or input():
@@ -149,12 +168,19 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--force", help="should the shortest path be forced?", action="store_true")
     parser.add_argument("-p", "--num_puzzles_to_gen", help="total number of puzzles to generate?", type=int, default=-1)
     parser.add_argument("-l", "--lo_symbols", help="min number of symbols allowed?", type=int, default=1)
-    parser.add_argument("-m", "--max_symbols", help="max number of symbols allowed?", type=int, default=10)
+    parser.add_argument("-m", "--max_symbols", help="max number of symbols allowed?", type=int, default=6)
     parser.add_argument("-v", "--lo_moves", help="min number of moves allowed?", type=int, default=1)
     parser.add_argument("-u", "--upper_moves", help="upper bound on number of moves allowed?", type=int, default=15)
+    parser.add_argument("-s", "--symbols_allowed",
+                        help="symbols allowed", type=str, default='xoan<>')
     args = parser.parse_args()
+    assert args.lo_symbols < args.max_symbols
+    assert args.lo_moves < args.upper_moves
+
     try:
         main(args)
+        # cur = bfs('', 3, 5, random.sample(letter_symbols, k=args.max_symbols), args.upper_moves)
+        # print(cur)
     except KeyboardInterrupt as e:
         print(e)
         os.system(f'dos2unix "{TESTING_FILE_PATH}"')
