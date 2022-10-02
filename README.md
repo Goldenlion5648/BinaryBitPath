@@ -15,7 +15,7 @@ Using the "Or" operator
 ![orOp](https://user-images.githubusercontent.com/32916571/193475575-8a55d005-3bd7-427a-92c5-4380134f8378.gif)
 
 
-More symbols get unlocked the higher the level and moves get limited!
+More symbols get unlocked the higher the level! You also get constrained in the number of moves you can make in later levels!
 
 ![image](https://user-images.githubusercontent.com/32916571/193475774-936f9d03-ba22-4013-afc5-b6cecf789c61.png)
 
